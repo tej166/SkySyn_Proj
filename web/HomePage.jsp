@@ -256,7 +256,7 @@ $(document).ready(function() {
                 }
                 if (count > 0) {
                     const average = total / count;
-                    var response = 'Average temperature between <strong>' + startDate + '</strong> and <strong>' + endDate + '</strong> is <strong>' + average.toFixed(2) + ' 캜</strong>';
+                    var response = 'Average temperature between <strong>' + startDate + '</strong> and <strong>' + endDate + '</strong> is <strong>' + average.toFixed(2) + ' 째C</strong>';
                     $('#weatherResult').html('<div class="card weather-card current-weather-card"><div class="card-body">' + response + '</div></div>');
                 } else {
                     $('#weatherResult').html('<div class="card weather-card current-weather-card"><div class="card-body">No temperature data found</div></div>');
@@ -274,7 +274,7 @@ $(document).ready(function() {
             .then(data => {
                 if (data.hasOwnProperty(year)) {
                     let averageTemperature = data[year];
-                    let response = `Average temperature for ${year} is <strong>${averageTemperature} 캜</strong>`;
+                    let response = `Average temperature for ${year} is <strong>${averageTemperature} 째C</strong>`;
                     $('#weatherResult').html('<div class="card weather-card current-weather-card"><div class="card-body">' + response + '</div></div>');
                 } else {
                     $('#weatherResult').html('<div class="card weather-card current-weather-card"><div class="card-body">No data found for ${year}</div></div>');
@@ -284,42 +284,47 @@ $(document).ready(function() {
     });
 
     // Add Card Button
-    $('#addCardBtn').click(function() {
-        if (weatherDataArray.length > 0) {
-            let latestWeatherData = weatherDataArray[weatherDataArray.length - 1];
-            let userName = getCookie('username'); 
-            let tempDiv = document.createElement('div');
-            tempDiv.innerHTML = latestWeatherData;
+$('#addCardBtn').click(function() {
+    if (weatherDataArray.length > 0) {
+        let latestWeatherData = weatherDataArray[weatherDataArray.length - 1];
+        let userName = getCookie('username'); 
+        let tempDiv = document.createElement('div');
+        tempDiv.innerHTML = latestWeatherData;
 
-            let place = extractValue(latestWeatherData, "Place");
-            let latitudeStr = extractValue(latestWeatherData, "Latitude");
-            let longitudeStr = extractValue(latestWeatherData, "Longitude");
-            let temperatureStr = extractValue(latestWeatherData, "Temperature");
+        let place = extractValue(latestWeatherData, "Place");
+        let latitudeStr = extractValue(latestWeatherData, "Latitude");
+        let longitudeStr = extractValue(latestWeatherData, "Longitude");
+        let temperatureStr = extractValue(latestWeatherData, "Temperature");
 
-            let latitude = parseFloat(latitudeStr);
-            let longitude = parseFloat(longitudeStr);
-            let temperature = parseFloat(temperatureStr.replace("캜", ""));
+        let latitude = parseFloat(latitudeStr);
+        let longitude = parseFloat(longitudeStr);
+        let temperature = parseFloat(temperatureStr.replace("째C", ""));
 
-            $.ajax({
-                type: 'POST',
-                url: 'addWeatherInfo',
-                data: {
-                    place: place,
-                    latitude: latitude,
-                    longitude: longitude,
-                    temperature: temperature,
-                    userName: userName
-                },
-                success: function(response) {
-                    console.log(response);
-                },
-                error: function(xhr, status, error) {
+        $.ajax({
+            type: 'POST',
+            url: 'addWeatherInfo',
+            data: {
+                place: place,
+                latitude: latitude,
+                longitude: longitude,
+                temperature: temperature,
+                userName: userName
+            },
+            success: function(response) {
+                console.log(response);
+                $('#additionalWeatherResults').append('<div class="card weather-card"><div class="card-body">' + latestWeatherData + '</div></div>');
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 409) {
+                    console.error('Error adding weather info:', xhr.responseText);
+                    alert(xhr.responseText); // Show alert message for duplicate entry
+                } else {
                     console.error('Error adding weather info:', xhr.responseText);
                 }
-            });
-            $('#additionalWeatherResults').append('<div class="card weather-card"><div class="card-body">' + latestWeatherData + '</div></div>');
-        }
-    });
+            }
+        });
+    }
+});
 
     function extractValue(data, key) {
         let startIndex = data.indexOf(key);
@@ -341,7 +346,7 @@ $(document).ready(function() {
                     weatherCardsHtml += '<h5 class="card-title">' + weatherData.place + '</h5>';
                     weatherCardsHtml += '<p class="card-text">Latitude: ' + weatherData.latitude + '</p>';
                     weatherCardsHtml += '<p class="card-text">Longitude: ' + weatherData.longitude + '</p>';
-                    weatherCardsHtml += '<p class="card-text">Temperature: ' + weatherData.temperature + '캜</p>';
+                    weatherCardsHtml += '<p class="card-text">Temperature: ' + weatherData.temperature + '째C</p>';
                     weatherCardsHtml += '</div></div>';
                     
                 });
